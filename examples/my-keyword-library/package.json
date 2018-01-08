@@ -10,6 +10,6 @@
   "license": "ISC",
   "dependencies": {
     "selenium-webdriver": "^3.6.0",
-    "step-node-agent": "file:C:/Users/jcomte/git/step-node/step-node-agent/step-node-agent-0.9.0.tgz"
+    "step-node-agent": "^0.9.0"
   }
 }
