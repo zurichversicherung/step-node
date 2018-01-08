@@ -1,5 +1,5 @@
 {
-  "name": "step-keyword-library-example",
+  "name": "my-keyword-library",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
@@ -9,6 +9,7 @@
   "author": "Jérôme Comte",
   "license": "ISC",
   "dependencies": {
-    "step-agent-node": "file:C:/Users/jcomte/git/step/agents/step-agent-node/step-agent-node-1.0.0.tgz"
+    "selenium-webdriver": "^3.6.0",
+    "step-node-agent": "file:C:/Users/jcomte/git/step-node/step-node-agent/step-node-agent-0.9.0.tgz"
   }
 }
