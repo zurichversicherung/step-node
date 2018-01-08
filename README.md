@@ -1,7 +1,4 @@
-# step-plugin-node
-STEP Plugin for Node.js
-
-***
+# STEP Plugin for Node.js
 
 ## Getting started
 
