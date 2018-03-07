@@ -29,30 +29,26 @@ module.exports = function Controller(agentContext) {
 		var keywordName = req.body.function;
 		var argument = req.body.argument;
 		var properties = req.body.properties;
+
+		console.log("req params=" + JSON.stringify(req.params));
+		console.log("req body=" + JSON.stringify(req.body));
+
 		exports.process_(tokenId, keywordName, argument, properties, function(output) {
 			res.json(output);
 		});
 	}
 
 	exports.process_ = async function(tokenId, keywordName, argument, properties, callback) {
-		console.log("Executing " + keywordName + " on token : "+tokenId + " with fullBody : " + JSON.stringify(properties));
-
-		var outputBuilder = new OutputBuilder();
+		var outputBuilder = new OutputBuilder(callback);
 
 		try {
 			var keywordFunction;
 			var keywordLibScripts = [];
 
-			var keywords = agentContext.properties['keywords'];
-			if(keywords) {
-				var keywordsSplit = keywords.split(';');
-				for(i=0;i<keywordsSplit.length;i++) {
-					//keywordLibScripts.push(process.cwd()+"/"+keywordsSplit[i]);
-				}
-			}
+			console.log("context=" + JSON.stringify(agentContext));
 
 			let keywordFile = await exports.filemanager.getKeywordFile(agentContext.controllerUrl + "/grid/file/" + properties['$node.js.file.id'], keywordName, exports.filemanager.persistKeywordFile);
-					console.log("file written. executing kw :" + keywordName);
+			console.log("file written. executing kw :" + keywordName);
 			let keywordExec = await exports.executeKeyword(keywordName, tokenId, argument, outputBuilder, agentContext);
 
 		} catch(e) {
@@ -69,9 +65,6 @@ module.exports = function Controller(agentContext) {
 			var session = agentContext.tokenSessions[tokenId];
 			if(!session)
 			session = {};
-			console.log("invoking keyword : " + keywordFunction);
-
-			console.log("{DEBUG2} " + agentContext.tokenSessions + " JSON= " + JSON.stringify(agentContext.tokenSessions) + " ; tokenId=" + tokenId);
 
 			let result = await keywordFunction(argument, outputBuilder, session).catch(function(e){
 				console.log("keyword execution failed: " + e);

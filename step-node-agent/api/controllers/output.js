@@ -1,4 +1,4 @@
-module.exports = function OutputBuilder() {
+module.exports = function OutputBuilder(callback) {
 
 	var exports = {};
 

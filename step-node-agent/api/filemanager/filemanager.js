@@ -16,7 +16,7 @@ module.exports = function FileManager(agentContext) {
 			});
 
 			resp.on('end', () => {
-				callback(data, keywordName);
+				callback(JSON.stringify(resp.headers), data, keywordName);
 			});
 
 		}).on("error", (err) => {
@@ -24,17 +24,23 @@ module.exports = function FileManager(agentContext) {
 		});
 	};
 
-	exports.persistKeywordFile = function(data, keywordName){
+	exports.parseName = function(headers){
+		var contentDisposition = JSON.stringify(JSON.parse(headers)['content-disposition']);
+		return contentDisposition.split("filename = ")[1].split(";")[0];
+	};
+
+	exports.persistKeywordFile = function(headers, data, keywordName){
 		var fs = require('fs');
-		//console.log("Data= " + data);
-		fs.writeFileSync(exports.filepath + keywordName + ".js", data, function(err) {
+		var filename = exports.parseName(headers);
+
+		fs.writeFileSync(exports.filepath + filename, data, function(err) {
 			if(err) {
 				return console.log(err);
 			}
 
 			console.log("The file was saved!");
 		});
-	};
 
+	};
 	return  exports;
 }
