@@ -34,10 +34,8 @@ module.exports = function Controller(agentContext) {
 		});
 	}
 
-	exports.process_ = function(tokenId, keywordName, argument, properties, callback) {
+	exports.process_ = async function(tokenId, keywordName, argument, properties, callback) {
 		console.log("Executing " + keywordName + " on token : "+tokenId + " with fullBody : " + JSON.stringify(properties));
-
-		console.log("{DEBUG1} " + agentContext.tokenSessions + " JSON= " + JSON.stringify(agentContext.tokenSessions));
 
 		var outputBuilder = new OutputBuilder();
 
@@ -50,15 +48,39 @@ module.exports = function Controller(agentContext) {
 				var keywordsSplit = keywords.split(';');
 				for(i=0;i<keywordsSplit.length;i++) {
 					//keywordLibScripts.push(process.cwd()+"/"+keywordsSplit[i]);
-					console.log("lib? " + keywordsSplit[i]);
 				}
 			}
 
-			var keywordFile = exports.filemanager.getKeywordFile(agentContext.controllerUrl + "/grid/file/" + properties['$node.js.file.id'], keywordName, tokenId, argument, outputBuilder, agentContext, exports.filemanager.persistKeywordFile);
+			let keywordFile = await exports.filemanager.getKeywordFile(agentContext.controllerUrl + "/grid/file/" + properties['$node.js.file.id'], keywordName, exports.filemanager.persistKeywordFile);
+					console.log("file written. executing kw :" + keywordName);
+			let keywordExec = await exports.executeKeyword(keywordName, tokenId, argument, outputBuilder, agentContext);
 
 		} catch(e) {
 			output.fail(e);
 		}
+	};
+
+	exports.executeKeyword = async function(keywordName,  tokenId, argument, outputBuilder, agentContext){
+
+		var kwMod = require(exports.filemanager.filepath + keywordName + ".js");
+		var keywordFunction = kwMod[keywordName];
+		if(keywordFunction) {
+
+			var session = agentContext.tokenSessions[tokenId];
+			if(!session)
+			session = {};
+			console.log("invoking keyword : " + keywordFunction);
+
+			console.log("{DEBUG2} " + agentContext.tokenSessions + " JSON= " + JSON.stringify(agentContext.tokenSessions) + " ; tokenId=" + tokenId);
+
+			let result = await keywordFunction(argument, outputBuilder, session).catch(function(e){
+				console.log("keyword execution failed: " + e);
+				outputBuilder.fail(e);
+			});
+		} else {
+			outputBuilder.fail("Unable to find keyword "+keywordName+" in "+keywordLibScript);
+		}
+
 	};
 
 	return  exports;
