@@ -7,7 +7,7 @@ exports.Open_Chrome = async function(input, output, session) {
 	var driver = await new webdriver.Builder()
 		.forBrowser('chrome')
 		.build();
-		
+
 	session.driver = driver;
 
 	output.send();
@@ -31,7 +31,7 @@ exports.Google_Search = async function(input, output, session) {
 
 		//await driver.findElement(By.name('btnGe')).click();
 		//await driver.wait(until.titleIs(input.search+' - Google Search'), 1000).then(function() {
-			
+
 		//});
 		output.send({"result":"OK"});
 		//driver.quit();

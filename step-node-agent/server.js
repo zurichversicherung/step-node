@@ -1,5 +1,5 @@
 const minimist = require('minimist');
-let args = minimist(process.argv.slice(2), {  
+let args = minimist(process.argv.slice(2), {
     default: {
         f: "agentConf.json"
     },
@@ -17,11 +17,11 @@ console.log("Creating agent context and tokens");
 const uuidv1 = require('uuid/v1');
 const _ = require("underscore");
 var agent = {id:uuidv1()}
-var agentContext = {tokens:[], tokenSessions:[], properties:agentConf.properties};
+var agentContext = {tokens:[], tokenSessions:[], properties:agentConf.properties, controllerUrl : agentConf.gridHost};
 _.each(agentConf.tokenGroups, function(tokenGroup) {
 	var tokenConf = tokenGroup.tokenConf;
 	var attributes = tokenConf.attributes;
-	attributes['$agenttype'] = 'default';
+	attributes['$agenttype'] = 'node';
 	for(i=0;i<tokenGroup.capacity;i++) {
 		var token = {id:uuidv1(),agentid:agent.id,attributes:attributes, selectionPatterns:{}};
 		agentContext.tokens.push(token);
@@ -53,14 +53,14 @@ console.log("Creating registration timer");
 var registrationPeriod = agentConf.registrationPeriod || 5000;
 const request = require('request');
 setInterval(function () {
-    request({uri:agentConf.gridHost+'/grid/register', 
-			 method: 'POST', 
-			 json: true, 
-			 body: {"agentRef":{"agentId":agent.id, "agentUrl":agentServicesUrl}, "tokens":agentContext.tokens} 
+    request({uri:agentConf.gridHost+'/grid/register',
+			 method: 'POST',
+			 json: true,
+			 body: {"agentRef":{"agentId":agent.id, "agentUrl":agentServicesUrl}, "tokens":agentContext.tokens}
 			}, function(err, res, body) {
 				if(err) {
 					console.log(err);
-				} 
+				}
 			});
 }, registrationPeriod);
 
