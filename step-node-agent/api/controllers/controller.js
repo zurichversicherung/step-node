@@ -2,6 +2,10 @@ module.exports = function Controller(agentContext) {
 
 	var exports = {};
 
+	var FileManager = require('../filemanager/filemanager');
+	var OutputBuilder = require('./output');
+	exports.filemanager = new FileManager(agentContext);
+
 	exports.reserveToken = function(req, res) {
 		exports.reserveToken_(req.params.tokenId);
 		res.json({});
@@ -33,29 +37,9 @@ module.exports = function Controller(agentContext) {
 	exports.process_ = function(tokenId, keywordName, argument, properties, callback) {
 		console.log("Executing " + keywordName + " on token : "+tokenId + " with fullBody : " + JSON.stringify(properties));
 
-		var outputBuilder = {attachments:[]};
-		var output = {
-			send: function(payload) {
-				outputBuilder.payload = payload;
-				if(callback) {
-					callback(outputBuilder);
-				}
-			},
-			fail: function(e) {
-				console.log(e);
-				if(e instanceof Error) {
-					outputBuilder.error = e.message;
-				} else {
-					outputBuilder.error = e;
-				}
-				if(callback) {
-					callback(outputBuilder);
-				}
-			},
-			attach: function(attachment) {
-				outputBuilder.attachments.push(attachment);
-			}
-		};
+		console.log("{DEBUG1} " + agentContext.tokenSessions + " JSON= " + JSON.stringify(agentContext.tokenSessions));
+
+		var outputBuilder = new OutputBuilder();
 
 		try {
 			var keywordFunction;
@@ -70,61 +54,12 @@ module.exports = function Controller(agentContext) {
 				}
 			}
 
-			var keywordFile = exports.getKeywordFile(agentContext.controllerUrl + "/grid/file/" + properties['$node.js.file.id'], keywordName, tokenId, argument, output, exports.persistKeywordFile);
+			var keywordFile = exports.filemanager.getKeywordFile(agentContext.controllerUrl + "/grid/file/" + properties['$node.js.file.id'], keywordName, tokenId, argument, outputBuilder, agentContext, exports.filemanager.persistKeywordFile);
 
 		} catch(e) {
 			output.fail(e);
 		}
 	};
-
-
-		exports.getKeywordFile = function(controllerFileUrl, keywordName, tokenId, argument, output, callback) {
-			console.log("Getting keyword file from gridHost : " + controllerFileUrl);
-			const http = require('http');
-
-			http.get(controllerFileUrl, (resp) => {
-			let data = '';
-
-	  	resp.on('data', (chunk) => {
-	    	data += chunk;
-	  	});
-
-	    resp.on('end', () => {
-				callback(data, keywordName, tokenId, output);
-	  	});
-
-			}).on("error", (err) => {
-	  		console.log("Error: " + err.message);
-				});
-		};
-
-		exports.persistKeywordFile = function(data, keywordName, argument, tokenId, output){
-			var filename = "test.js";
-			var filepath = "C:\\Dev\\node\\filemanager\\" + filename;
-
-			var fs = require('fs');
-			//console.log("Data= " + data);
-			fs.writeFileSync(filepath, data, function(err) {
-				if(err) {
-					return console.log(err);
-			}
-
-				console.log("The file was saved!");
-			});
-
-			var kwMod = require(filepath);
-			var keywordFunction = kwMod[keywordName];
-			if(keywordFunction) {
-				var session = agentContext.tokenSessions[tokenId];
-				keywordFunction(argument, output, session).catch(function(e){
-					output.fail(e);
-				});
-			} else {
-				output.fail("Unable to find keyword "+keywordName+" in "+keywordLibScript);
-			}
-
-		};
-
 
 	return  exports;
 }

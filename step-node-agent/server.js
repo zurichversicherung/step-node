@@ -29,6 +29,9 @@ _.each(agentConf.tokenGroups, function(tokenGroup) {
 	}
 })
 
+console.log("Resulting tokenSessions: " + agentContext.tokenSessions);
+console.log("Resulting tokens: " + agentContext.tokens);
+
 
 console.log("Starting agent services");
 var express = require('express'),
