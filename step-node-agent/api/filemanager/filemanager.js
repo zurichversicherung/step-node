@@ -2,26 +2,36 @@ module.exports = function FileManager(agentContext) {
 
 	var exports = {};
 
-	exports.filepath = "C:\\Dev\\node\\filemanager\\";
+	//exports.filepath = process.cwd() + "/work/filemanager/";
+	exports.filepath = "C:\\tmp\\";
+
+	var fs = require('fs');
+	if (!fs.existsSync(exports.filepath)){
+	    fs.mkdirSync(exports.filepath);
+	}
 
 	exports.getKeywordFile = function(controllerFileUrl, keywordName, callback) {
 		console.log("Getting keyword file from gridHost : " + controllerFileUrl);
 		const http = require('http');
 
-		http.get(controllerFileUrl, (resp) => {
-			let data = '';
+		return new Promise(function(resolve, reject) {
 
-			resp.on('data', (chunk) => {
-				data += chunk;
+			http.get(controllerFileUrl, (resp) => {
+				let data = '';
+				resp.on('data', (chunk) => {
+					data += chunk;
+				});
+
+				resp.on('end', () => {
+					resolve({ 'data' : data, 'headers' : resp.headers });
+				});
+
+			}).on("error", (err) => {
+				console.log("Error: " + err.message);
+				reject(err);
 			});
 
-			resp.on('end', () => {
-				callback(JSON.stringify(resp.headers), data, keywordName);
-			});
-
-		}).on("error", (err) => {
-			console.log("Error: " + err.message);
-		});
+    });
 	};
 
 	exports.parseName = function(headers){
@@ -35,10 +45,11 @@ module.exports = function FileManager(agentContext) {
 
 		fs.writeFileSync(exports.filepath + filename, data, function(err) {
 			if(err) {
-				return console.log(err);
+				console.log(err);
+				return null;
 			}
 
-			console.log("The file was saved!");
+			console.log("The file is written!");
 		});
 
 	};

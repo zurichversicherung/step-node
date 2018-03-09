@@ -30,8 +30,8 @@ module.exports = function Controller(agentContext) {
 		var argument = req.body.argument;
 		var properties = req.body.properties;
 
-		console.log("req params=" + JSON.stringify(req.params));
-		console.log("req body=" + JSON.stringify(req.body));
+		//console.log("req params=" + JSON.stringify(req.params));
+		//console.log("req body=" + JSON.stringify(req.body));
 
 		exports.process_(tokenId, keywordName, argument, properties, function(output) {
 			res.json(output);
@@ -45,20 +45,28 @@ module.exports = function Controller(agentContext) {
 			var keywordFunction;
 			var keywordLibScripts = [];
 
-			console.log("context=" + JSON.stringify(agentContext));
+			console.log(__filename +"  <-> "+ __dirname );
 
-			let keywordFile = await exports.filemanager.getKeywordFile(agentContext.controllerUrl + "/grid/file/" + properties['$node.js.file.id'], keywordName, exports.filemanager.persistKeywordFile);
-			console.log("file written. executing kw :" + keywordName);
-			let keywordExec = await exports.executeKeyword(keywordName, tokenId, argument, outputBuilder, agentContext);
+			//console.log("context=" + JSON.stringify(agentContext));
+
+			var fileDescPromise = exports.filemanager.getKeywordFile(agentContext.controllerUrl + "/grid/file/" + properties['$node.js.file.id'], keywordName);
+
+			await fileDescPromise.then(function(result){
+					exports.filemanager.persistKeywordFile(JSON.stringify(result.headers), result.data, keywordName);
+					exports.executeKeyword(keywordName, tokenId, argument, outputBuilder, agentContext);
+			}, function(err){
+				console.log("incorrect file descriptor: " + JSON.parse(fileDesc));
+			});
 
 		} catch(e) {
-			output.fail(e);
+			outputBuilder.fail(e);
 		}
 	};
 
 	exports.executeKeyword = async function(keywordName,  tokenId, argument, outputBuilder, agentContext){
 
-		var kwMod = require(exports.filemanager.filepath + keywordName + ".js");
+		console.log('requiring keyword file: ' + exports.filemanager.filepath + 'keywords' );
+		var kwMod = require(exports.filemanager.filepath + 'keywords.js');
 		var keywordFunction = kwMod[keywordName];
 		if(keywordFunction) {
 
@@ -66,10 +74,13 @@ module.exports = function Controller(agentContext) {
 			if(!session)
 			session = {};
 
+			console.log("executing keyword: " + keywordName);
 			let result = await keywordFunction(argument, outputBuilder, session).catch(function(e){
 				console.log("keyword execution failed: " + e);
 				outputBuilder.fail(e);
 			});
+
+			console.log("keyword execution succeeded");
 		} else {
 			outputBuilder.fail("Unable to find keyword "+keywordName+" in "+keywordLibScript);
 		}

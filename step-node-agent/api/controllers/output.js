@@ -7,7 +7,7 @@ module.exports = function OutputBuilder(callback) {
 	exports.send = function(payload, callback) {
 		exports.output.payload = payload;
 		if(callback) {
-			callback(outputBuilder);
+			callback(exports.output);
 		}
 	};
 
@@ -19,7 +19,7 @@ module.exports = function OutputBuilder(callback) {
 			exports.output.error = e;
 		}
 		if(callback) {
-			callback(outputBuilder);
+			callback(exports.output);
 		}
 	};
 
