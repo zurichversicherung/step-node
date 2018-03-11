@@ -2,8 +2,10 @@ module.exports = function FileManager(agentContext) {
 
 	var exports = {};
 
-	var fs = require('fs');
-	var shell = require('shelljs');
+	const fs = require('fs');
+	const shell = require('shelljs');
+	const http = require('http');
+	const unzip = require('unzip2');
 	//exports.filepath = process.cwd() + "/work/filemanager/";
 	exports.filepath = agentContext.properties['filemanagerPath'] + "/work/";
 
@@ -26,15 +28,11 @@ module.exports = function FileManager(agentContext) {
 				console.log("[FileManager] filepath created.");
 
 				console.log("[FileManager] Requesting file transfer from: " + controllerUrl + fileId);
-				var filenamePromise = exports.getKeywordFile(controllerUrl + fileId);
+				var filenamePromise = getKeywordFile(controllerUrl + fileId, filePath);
 
 				filenamePromise.then(function(result){
-
-					exports.filemanagerMap[fileId] = { 'name' : result.filename, 'fileVersionId' : fileVersionId };
-					console.log("[FileManager] Persisting file : " +result.filename + " to " + filePath);
-					exports.persistKeywordFile(filePath + "/" + result.filename, result.filename, result.data);
-					resolve(filePath + '/' + result.filename);
-
+					exports.filemanagerMap[fileId] = { 'name' : result, 'fileVersionId' : fileVersionId };
+					resolve(filePath + '/' + result);
 				}, function(err){
 					console.log("Error :" + err);
 					reject(err);
@@ -61,25 +59,22 @@ module.exports = function FileManager(agentContext) {
 
 	};
 
-	exports.getKeywordFile = function(controllerFileUrl) {
+	function getKeywordFile(controllerFileUrl, targetDir) {
 		return new Promise(function(resolve, reject) {
 
 			console.log("Getting keyword file from gridHost : " + controllerFileUrl);
-			const http = require('http');
+			
 
 
 			http.get(controllerFileUrl, (resp) => {
-				let data = '';
-				resp.on('data', (chunk) => {
-					data += chunk;
-				});
-
-				resp.on('end', () => {
-					var filename = exports.parseName(resp.headers);
-					resolve({ 'data' : data, 'filename' :  filename});
-					//console.log("[FileManager] Returning keyword file, filename=" + filename + " ; data=" + data);
-				});
-
+				var filename = parseName(resp.headers);
+				var filepath = targetDir+"/"+filename;
+				if(isDir(resp.headers)) {
+					resp.pipe(unzip.Extract({ path: filepath })).on('close', ()=>resolve(filename));
+				} else {
+					var myFile = fs.createWriteStream(filepath);
+					resp.pipe(myFile).on('finish', ()=>resolve(filename));
+				}
 			}).on("error", (err) => {
 				console.log("Error: " + err.message);
 				reject(err);
@@ -88,24 +83,14 @@ module.exports = function FileManager(agentContext) {
 		});
 	};
 
-	exports.parseName = function(headers){
+	function parseName(headers){
 		var contentDisposition = JSON.stringify(headers['content-disposition']);
 		return contentDisposition.split("filename = ")[1].split(";")[0];
 	};
-
-	exports.persistKeywordFile = function(path, filename, data){
-		var fs = require('fs');
-
-		console.log("[FileManager] Persisting keyword file " + filename + " into " + path);
-		fs.writeFileSync(path, data, function(err) {
-			if(err) {
-				console.log(err);
-				return null;
-			}
-
-			console.log("The file is written!");
-		});
-
+	
+	function isDir(headers){
+		var contentDisposition = JSON.stringify(headers['content-disposition']);
+		return contentDisposition.split("type = ")[1].split(";")[0].startsWith('dir');
 	};
 	return  exports;
 }

@@ -46,7 +46,7 @@ module.exports = function Controller(agentContext) {
 
 			filepathPromise.then(function(result){
 					console.log("[Controller] Executing keyword " + keywordName + " using filepath " + result);
-					exports.executeKeyword(keywordName, result, tokenId, argument, outputBuilder, agentContext);
+					exports.executeKeyword(keywordName, result+"/keywords.js", tokenId, argument, outputBuilder, agentContext);
 			}, function(err){
 				console.log("error while attempting to run keyword " + keywordName + " :" + err);
 			});
