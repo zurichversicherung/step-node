@@ -4,17 +4,13 @@ module.exports = function FileManager(agentContext) {
 
 	var exports = {};
 
-	var shell = require('shelljs');
-
-	//exports.filepath = process.cwd() + "/work/filemanager/";
-	exports.filepath = agentContext.properties['filemanagerPath'];
-
 	var fs = require('fs');
-	if (!fs.existsSync(exports.filepath)){
-		console.log("[FileManager] Root filemanager folder doesn't exist, attempting to create: " + exports.filepath);
-		fs.mkdirSync(exports.filepath);
-		console.log("[FileManager] Root filemanager folder created.");
-	}
+	var shell = require('shelljs');
+	//exports.filepath = process.cwd() + "/work/filemanager/";
+	exports.filepath = agentContext.properties['filemanagerPath'] + "/work/";
+
+	shell.rm('-rf', exports.filepath);
+	fs.mkdirSync(exports.filepath);
 
 	exports.loadOrGetKeywordFile = function(controllerUrl, fileId, fileVersionId) {
 
@@ -34,14 +30,9 @@ module.exports = function FileManager(agentContext) {
 
 				filenamePromise.then(function(result){
 
-					console.log(" HELLOOOOOOOOOOOOOOOOOOOOOOOOOOO " + result.filename);
-
 					___filemanagerMap[fileId] = { 'name' : result.filename, 'fileVersionId' : fileVersionId };
-
-					console.log(" HELLLAAAA " +  ___filemanagerMap[fileId]);
-
+					console.log("[FileManager] Persisting file : " +result.filename + " to " + filePath);
 					exports.persistKeywordFile(filePath + "/" + result.filename, result.filename, result.data);
-
 					resolve(filePath + '/' + result.filename);
 
 				}, function(err){
@@ -51,21 +42,21 @@ module.exports = function FileManager(agentContext) {
 
 			} else {
 				if(___filemanagerMap[fileId] &&  ___filemanagerMap[fileId]['name']){
-					console.log("[FileManager] Entry found for fileId " + fileId + ": " + filename +"="+ ___filemanagerMap[fileId]['name']);
+					console.log("[FileManager] Entry found for fileId " + fileId + ": " + fileName +"="+ ___filemanagerMap[fileId]['name']);
 					fileName = ___filemanagerMap[fileId]['name'];
 
 					if(!fs.existsSync(filePath + "/" + fileName)){
-						console.log("Entry exists but no file found: " + filePath + "/" + fileName);
-						reject(err);
+						//console.log("Entry exists but no file found: " + filePath + "/" + fileName);
+						reject("Entry exists but no file found: " + filePath + "/" + fileName);
 					}
 
 					resolve(filePath + '/' + fileName);
 				}else{
-					console.log("[FileManager] Entry doesn't exist for file");
-					reject(err);
+					//console.log();
+					reject("[FileManager] Entry doesn't exist for file");
 				}
-
 			}
+
 		});
 
 	};
