@@ -1,5 +1,3 @@
-let ___filemanagerMap = {};
-
 module.exports = function FileManager(agentContext) {
 
 	var exports = {};
@@ -11,6 +9,8 @@ module.exports = function FileManager(agentContext) {
 
 	shell.rm('-rf', exports.filepath);
 	fs.mkdirSync(exports.filepath);
+
+	exports.filemanagerMap = {};
 
 	exports.loadOrGetKeywordFile = function(controllerUrl, fileId, fileVersionId) {
 
@@ -30,7 +30,7 @@ module.exports = function FileManager(agentContext) {
 
 				filenamePromise.then(function(result){
 
-					___filemanagerMap[fileId] = { 'name' : result.filename, 'fileVersionId' : fileVersionId };
+					exports.filemanagerMap[fileId] = { 'name' : result.filename, 'fileVersionId' : fileVersionId };
 					console.log("[FileManager] Persisting file : " +result.filename + " to " + filePath);
 					exports.persistKeywordFile(filePath + "/" + result.filename, result.filename, result.data);
 					resolve(filePath + '/' + result.filename);
@@ -41,9 +41,9 @@ module.exports = function FileManager(agentContext) {
 				});
 
 			} else {
-				if(___filemanagerMap[fileId] &&  ___filemanagerMap[fileId]['name']){
-					console.log("[FileManager] Entry found for fileId " + fileId + ": " + fileName +"="+ ___filemanagerMap[fileId]['name']);
-					fileName = ___filemanagerMap[fileId]['name'];
+				if(exports.filemanagerMap[fileId] &&  exports.filemanagerMap[fileId]['name']){
+					console.log("[FileManager] Entry found for fileId " + fileId + ": " + fileName +"="+ exports.filemanagerMap[fileId]['name']);
+					fileName = exports.filemanagerMap[fileId]['name'];
 
 					if(!fs.existsSync(filePath + "/" + fileName)){
 						//console.log("Entry exists but no file found: " + filePath + "/" + fileName);
