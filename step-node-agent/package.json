@@ -4,7 +4,8 @@
   "description": "The official STEP Agent implementation for Node.js",
   "main": "index.js",
   "scripts": {
-    "start": "nodemon server.js"
+    "start": "nodemon server.js",
+    "debug": "node --inspect-brk server.js"
   },
   "author": "Jérôme Comte",
   "license": "AGPL-3.0",
