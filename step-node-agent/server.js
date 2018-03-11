@@ -14,16 +14,16 @@ var agentConf = JSON.parse(content);
 
 
 console.log("Creating agent context and tokens");
-const uuidv1 = require('uuid/v1');
+const uuid = require('uuid/v4');
 const _ = require("underscore");
-var agent = {id:uuidv1()}
+var agent = {id:uuid()}
 var agentContext = {tokens:[], tokenSessions:[], properties:agentConf.properties, controllerUrl : agentConf.gridHost};
 _.each(agentConf.tokenGroups, function(tokenGroup) {
 	var tokenConf = tokenGroup.tokenConf;
 	var attributes = tokenConf.attributes;
 	attributes['$agenttype'] = 'node';
 	for(i=0;i<tokenGroup.capacity;i++) {
-		var token = {id:uuidv1(),agentid:agent.id,attributes:attributes, selectionPatterns:{}};
+		var token = {id:uuid(),agentid:agent.id,attributes:attributes, selectionPatterns:{}};
 		agentContext.tokens.push(token);
 		agentContext.tokenSessions[token.id] = {};
 	}
