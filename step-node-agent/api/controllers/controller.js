@@ -33,8 +33,8 @@ module.exports = function Controller(agentContext) {
 		//console.log("req params=" + JSON.stringify(req.params));
 		//console.log("req body=" + JSON.stringify(req.body));
 
-		exports.process_(tokenId, keywordName, argument, properties, function(output) {
-			res.json(output);
+		exports.process_(tokenId, keywordName, argument, properties, function(payload) {
+			res.json(payload);
 		});
 	}
 
@@ -42,20 +42,13 @@ module.exports = function Controller(agentContext) {
 		var outputBuilder = new OutputBuilder(callback);
 
 		try {
-			var keywordFunction;
-			var keywordLibScripts = [];
-
-			console.log(__filename +"  <-> "+ __dirname );
-
-			//console.log("context=" + JSON.stringify(agentContext));
-
 			var fileDescPromise = exports.filemanager.getKeywordFile(agentContext.controllerUrl + "/grid/file/" + properties['$node.js.file.id'], keywordName);
 
 			await fileDescPromise.then(function(result){
-					exports.filemanager.persistKeywordFile(JSON.stringify(result.headers), result.data, keywordName);
-					exports.executeKeyword(keywordName, tokenId, argument, outputBuilder, agentContext);
+					exports.filemanager.persistKeywordFile(result.filename, result.data);
+					exports.executeKeyword(keywordName, result.filename, tokenId, argument, outputBuilder, agentContext);
 			}, function(err){
-				console.log("incorrect file descriptor: " + JSON.parse(fileDesc));
+				console.log("error while attempting to run keyword " + keywordName + " :" + err);
 			});
 
 		} catch(e) {
@@ -63,10 +56,10 @@ module.exports = function Controller(agentContext) {
 		}
 	};
 
-	exports.executeKeyword = async function(keywordName,  tokenId, argument, outputBuilder, agentContext){
+	exports.executeKeyword = async function(keywordName, filename, tokenId, argument, outputBuilder, agentContext){
 
-		console.log('requiring keyword file: ' + exports.filemanager.filepath + 'keywords' );
-		var kwMod = require(exports.filemanager.filepath + 'keywords.js');
+		console.log('requiring keyword file: ' + exports.filemanager.filepath + filename );
+		var kwMod = require(exports.filemanager.filepath + filename);
 		var keywordFunction = kwMod[keywordName];
 		if(keywordFunction) {
 

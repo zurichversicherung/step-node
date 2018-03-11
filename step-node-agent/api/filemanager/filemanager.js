@@ -3,7 +3,7 @@ module.exports = function FileManager(agentContext) {
 	var exports = {};
 
 	//exports.filepath = process.cwd() + "/work/filemanager/";
-	exports.filepath = "C:\\tmp\\";
+	exports.filepath = agentContext.properties['filemanagerPath'];
 
 	var fs = require('fs');
 	if (!fs.existsSync(exports.filepath)){
@@ -23,7 +23,7 @@ module.exports = function FileManager(agentContext) {
 				});
 
 				resp.on('end', () => {
-					resolve({ 'data' : data, 'headers' : resp.headers });
+					resolve({ 'data' : data, 'filename' : exports.parseName(resp.headers) });
 				});
 
 			}).on("error", (err) => {
@@ -35,13 +35,12 @@ module.exports = function FileManager(agentContext) {
 	};
 
 	exports.parseName = function(headers){
-		var contentDisposition = JSON.stringify(JSON.parse(headers)['content-disposition']);
+		var contentDisposition = JSON.stringify(headers['content-disposition']);
 		return contentDisposition.split("filename = ")[1].split(";")[0];
 	};
 
-	exports.persistKeywordFile = function(headers, data, keywordName){
+	exports.persistKeywordFile = function(filename, data){
 		var fs = require('fs');
-		var filename = exports.parseName(headers);
 
 		fs.writeFileSync(exports.filepath + filename, data, function(err) {
 			if(err) {
