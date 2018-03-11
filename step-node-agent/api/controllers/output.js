@@ -2,30 +2,30 @@ module.exports = function OutputBuilder(callback) {
 
 	var exports = {};
 
-	exports.output = {attachments:[]};
+	exports.builder = {attachments:[]};
 
-	exports.send = function(payload, callback) {
-		exports.output.payload = payload;
-		if(callback) {
-			callback(exports.output);
-		}
-	};
+	exports.send = function(payload) {
+				exports.builder.payload = payload;
+			if(callback) {
+				callback(exports.builder);
+			}
+		};
 
 	exports.fail = function(e) {
-		console.log(e);
-		if(e instanceof Error) {
-			exports.output.error = e.message;
-		} else {
-			exports.output.error = e;
-		}
-		if(callback) {
-			callback(exports.output);
-		}
-	};
+			console.log(e);
+			if(e instanceof Error) {
+				exports.builder.error = e.message;
+			} else {
+				exports.builder.error = e;
+			}
+			if(callback) {
+				callback(exports.builder);
+			}
+		};
 
-	exports.attach = function(attachment) {
-		output.attachments.push(attachment);
-	};
+		exports.attach = function(attachment) {
+			exports.builder.attachments.push(attachment);
+		};
 
 	return exports;
 }
