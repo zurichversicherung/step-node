@@ -38,15 +38,15 @@ module.exports = function Controller(agentContext) {
 		});
 	}
 
-	exports.process_ = async function(tokenId, keywordName, argument, properties, callback) {
+	exports.process_ = function(tokenId, keywordName, argument, properties, callback) {
 		var outputBuilder = new OutputBuilder(callback);
 
 		try {
-			var fileDescPromise = exports.filemanager.getKeywordFile(agentContext.controllerUrl + "/grid/file/" + properties['$node.js.file.id'], keywordName);
+			var filepathPromise = exports.filemanager.loadOrGetKeywordFile(agentContext.controllerUrl + "/grid/file/", properties['$node.js.file.id'], properties['$node.js.file.version'], keywordName);
 
-			await fileDescPromise.then(function(result){
-					exports.filemanager.persistKeywordFile(result.filename, result.data);
-					exports.executeKeyword(keywordName, result.filename, tokenId, argument, outputBuilder, agentContext);
+			filepathPromise.then(function(result){
+					console.log("[Controller] Executing keyword " + keywordName + " using filepath " + result);
+					exports.executeKeyword(keywordName, result, tokenId, argument, outputBuilder, agentContext);
 			}, function(err){
 				console.log("error while attempting to run keyword " + keywordName + " :" + err);
 			});
@@ -56,10 +56,10 @@ module.exports = function Controller(agentContext) {
 		}
 	};
 
-	exports.executeKeyword = async function(keywordName, filename, tokenId, argument, outputBuilder, agentContext){
+	exports.executeKeyword = async function(keywordName, filepath, tokenId, argument, outputBuilder, agentContext){
 
-		console.log('requiring keyword file: ' + exports.filemanager.filepath + filename );
-		var kwMod = require(exports.filemanager.filepath + filename);
+		console.log('requiring keyword file: ' + filepath);
+		var kwMod = require(filepath);
 		var keywordFunction = kwMod[keywordName];
 		if(keywordFunction) {
 
