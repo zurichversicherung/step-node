@@ -49,7 +49,7 @@ app.listen(port);
 
 var os = require("os");
 var agentServicesUrl = agentConf.agentUrl || "http://"+os.hostname()+":"+port;
-console.log("[Agent] Registering agent as "+agentServicesUrl);
+console.log("[Agent] Registering agent as "+agentServicesUrl + " to grid " + agentConf.gridHost);
 
 
 console.log("[Agent] Creating registration timer");
