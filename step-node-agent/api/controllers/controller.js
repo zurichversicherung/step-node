@@ -65,7 +65,7 @@ module.exports = function Controller(agentContext) {
 
 	exports.executeKeyword = async function(keywordName, filepath, tokenId, argument, outputBuilder, agentContext){
 
-		console.log('[Controller] Requiring keyword file: ' + filepath);
+		console.log('[Controller] Requiring keyword file ' + filepath+ " for token "+tokenId);
 		var kwMod = require(filepath);
 		var keywordFunction = kwMod[keywordName];
 		if(keywordFunction) {
@@ -74,13 +74,13 @@ module.exports = function Controller(agentContext) {
 			if(!session)
 			session = {};
 
-			console.log("[Controller] Executing keyword: " + keywordName);
+			console.log("[Controller] Executing keyword " + keywordName+ " on token "+tokenId);
 			let result = await keywordFunction(argument, outputBuilder, session).catch(function(e){
 				console.log("[Controller] Keyword execution failed: " + e);
 				outputBuilder.fail(e);
 			});
 
-			console.log("[Controller] Keyword execution succeeded");
+			console.log("[Controller] Keyword successfully executed on token "+tokenId);
 		} else {
 			outputBuilder.fail("Unable to find keyword "+keywordName+" in "+keywordLibScript);
 		}

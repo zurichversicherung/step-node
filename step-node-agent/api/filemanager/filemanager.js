@@ -8,7 +8,7 @@ module.exports = function FileManager(agentContext) {
 	var workingDir = agentContext.properties['filemanagerPath'] + "/work/";
 	console.log("[FileManager] Starting file manager using working directory: "+ workingDir);
 
-	console.log("[FileManager] Clearign working dir: "+ workingDir);
+	console.log("[FileManager] Clearing working dir: "+ workingDir);
 	shell.rm('-rf', workingDir);
 	fs.mkdirSync(workingDir);
 
