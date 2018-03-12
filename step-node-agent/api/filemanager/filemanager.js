@@ -12,7 +12,7 @@ module.exports = function FileManager(agentContext) {
 	shell.rm('-rf', exports.filepath);
 	fs.mkdirSync(exports.filepath);
 
-	exports.filemanagerMap = {};
+	var filemanagerMap = {};
 
 	exports.loadOrGetKeywordFile = function(controllerUrl, fileId, fileVersionId) {
 
@@ -20,7 +20,6 @@ module.exports = function FileManager(agentContext) {
 
 			var filePath = exports.filepath + fileId +"/"+ fileVersionId;
 			var fileName = '';
-
 
 			if (!fs.existsSync(filePath)) {
 				console.log("[FileManager] filepath doesn't exist: " + filePath);
@@ -31,7 +30,8 @@ module.exports = function FileManager(agentContext) {
 				var filenamePromise = getKeywordFile(controllerUrl + fileId, filePath);
 
 				filenamePromise.then(function(result){
-					exports.filemanagerMap[fileId] = { 'name' : result, 'fileVersionId' : fileVersionId };
+					console.log("[FileManager] Transfered file " + result + " from "+ controllerUrl + fileId);
+					filemanagerMap[fileId] = { 'name' : result, 'fileVersionId' : fileVersionId };
 					resolve(filePath + '/' + result);
 				}, function(err){
 					console.log("Error :" + err);
@@ -39,9 +39,9 @@ module.exports = function FileManager(agentContext) {
 				});
 
 			} else {
-				if(exports.filemanagerMap[fileId] &&  exports.filemanagerMap[fileId]['name']){
-					console.log("[FileManager] Entry found for fileId " + fileId + ": " + fileName +"="+ exports.filemanagerMap[fileId]['name']);
-					fileName = exports.filemanagerMap[fileId]['name'];
+				if(filemanagerMap[fileId] &&  filemanagerMap[fileId]['name']){
+					console.log("[FileManager] Entry found for fileId " + fileId + ": " + fileName +"="+ filemanagerMap[fileId]['name']);
+					fileName = filemanagerMap[fileId]['name'];
 
 					if(!fs.existsSync(filePath + "/" + fileName)){
 						//console.log("Entry exists but no file found: " + filePath + "/" + fileName);
@@ -61,11 +61,6 @@ module.exports = function FileManager(agentContext) {
 
 	function getKeywordFile(controllerFileUrl, targetDir) {
 		return new Promise(function(resolve, reject) {
-
-			console.log("Getting keyword file from gridHost : " + controllerFileUrl);
-			
-
-
 			http.get(controllerFileUrl, (resp) => {
 				var filename = parseName(resp.headers);
 				var filepath = targetDir+"/"+filename;
@@ -79,7 +74,6 @@ module.exports = function FileManager(agentContext) {
 				console.log("Error: " + err.message);
 				reject(err);
 			});
-
 		});
 	};
 

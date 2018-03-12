@@ -45,8 +45,15 @@ module.exports = function Controller(agentContext) {
 			var filepathPromise = exports.filemanager.loadOrGetKeywordFile(agentContext.controllerUrl + "/grid/file/", properties['$node.js.file.id'], properties['$node.js.file.version'], keywordName);
 
 			filepathPromise.then(function(result){
-					console.log("[Controller] Executing keyword " + keywordName + " using filepath " + result);
-					exports.executeKeyword(keywordName, result+"/keywords.js", tokenId, argument, outputBuilder, agentContext);
+				var keywordFile;
+				if(result.endsWith('.js')) {
+					keywordFile = result;
+				} else {
+					keywordFile = result + "/keywords/keywords.js"
+				}
+				
+				console.log("[Controller] Executing keyword " + keywordName + " using filepath " + keywordFile);
+				exports.executeKeyword(keywordName, keywordFile, tokenId, argument, outputBuilder, agentContext);
 			}, function(err){
 				console.log("error while attempting to run keyword " + keywordName + " :" + err);
 			});
