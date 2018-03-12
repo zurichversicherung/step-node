@@ -4,16 +4,16 @@ let args = minimist(process.argv.slice(2), {
         f: "agentConf.json"
     },
 });
-console.log("Using arguments "+args);
+console.log("[Agent] Using arguments "+args);
 
 var agentConfFile = args.f;
-console.log("Reading agent configuration "+agentConfFile);
+console.log("[Agent] Reading agent configuration "+agentConfFile);
 var fs = require("fs");
 var content = fs.readFileSync(agentConfFile);
 var agentConf = JSON.parse(content);
 
 
-console.log("Creating agent context and tokens");
+console.log("[Agent] Creating agent context and tokens");
 const uuid = require('uuid/v4');
 const _ = require("underscore");
 var agent = {id:uuid()}
@@ -33,7 +33,7 @@ _.each(agentConf.tokenGroups, function(tokenGroup) {
 //console.log("Resulting tokens: " + agentContext.tokens);
 
 
-console.log("Starting agent services");
+console.log("[Agent] Starting agent services");
 var express = require('express'),
   app = express(),
   port = agentConf.agentPort || 3000,
@@ -49,10 +49,10 @@ app.listen(port);
 
 var os = require("os");
 var agentServicesUrl = agentConf.agentUrl || "http://"+os.hostname()+":"+port;
-console.log("Registering agent as "+agentServicesUrl);
+console.log("[Agent] Registering agent as "+agentServicesUrl);
 
 
-console.log("Creating registration timer");
+console.log("[Agent] Creating registration timer");
 var registrationPeriod = agentConf.registrationPeriod || 5000;
 const request = require('request');
 setInterval(function () {
@@ -67,4 +67,4 @@ setInterval(function () {
 			});
 }, registrationPeriod);
 
-console.log('Agent successfully started on: ' + port);
+console.log('[Agent] Successfully started on: ' + port);

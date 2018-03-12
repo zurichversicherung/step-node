@@ -12,7 +12,7 @@ module.exports = function Controller(agentContext) {
 	}
 
 	exports.reserveToken_ = function(tokenId) {
-		console.log("Reserving token: "+tokenId);
+		console.log("[Controller] Reserving token: "+tokenId);
 	};
 
 	exports.releaseToken = function(req, res) {
@@ -21,7 +21,7 @@ module.exports = function Controller(agentContext) {
 	};
 
 	exports.releaseToken_ = function(tokenId) {
-		console.log("Releasing token: "+tokenId);
+		console.log("[Controller] Releasing token: "+tokenId);
 	};
 
 	exports.process = function(req, res) {
@@ -55,7 +55,7 @@ module.exports = function Controller(agentContext) {
 				console.log("[Controller] Executing keyword " + keywordName + " using filepath " + keywordFile);
 				exports.executeKeyword(keywordName, keywordFile, tokenId, argument, outputBuilder, agentContext);
 			}, function(err){
-				console.log("error while attempting to run keyword " + keywordName + " :" + err);
+				console.log("[Controller] Error while attempting to run keyword " + keywordName + " :" + err);
 			});
 
 		} catch(e) {
@@ -65,7 +65,7 @@ module.exports = function Controller(agentContext) {
 
 	exports.executeKeyword = async function(keywordName, filepath, tokenId, argument, outputBuilder, agentContext){
 
-		console.log('requiring keyword file: ' + filepath);
+		console.log('[Controller] Requiring keyword file: ' + filepath);
 		var kwMod = require(filepath);
 		var keywordFunction = kwMod[keywordName];
 		if(keywordFunction) {
@@ -74,13 +74,13 @@ module.exports = function Controller(agentContext) {
 			if(!session)
 			session = {};
 
-			console.log("executing keyword: " + keywordName);
+			console.log("[Controller] Executing keyword: " + keywordName);
 			let result = await keywordFunction(argument, outputBuilder, session).catch(function(e){
-				console.log("keyword execution failed: " + e);
+				console.log("[Controller] Keyword execution failed: " + e);
 				outputBuilder.fail(e);
 			});
 
-			console.log("keyword execution succeeded");
+			console.log("[Controller] Keyword execution succeeded");
 		} else {
 			outputBuilder.fail("Unable to find keyword "+keywordName+" in "+keywordLibScript);
 		}
