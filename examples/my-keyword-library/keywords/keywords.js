@@ -29,12 +29,18 @@ exports.Google_Search = async function(input, output, session) {
 		var data = await driver.takeScreenshot();
 		output.attach({"name":"screenshot.png","hexContent":data});
 
-		//await driver.findElement(By.name('btnGe')).click();
-		//await driver.wait(until.titleIs(input.search+' - Google Search'), 1000).then(function() {
-
-		//});
 		output.send({"result":"OK"});
-		//driver.quit();
+	} catch (e) {
+		output.fail(e);
+	}
+}
+
+exports.Close_Chrome = async function(input, output, session) {
+	try {
+		var driver = session.driver;
+		driver.quit();
+
+		output.send({"result":"OK"});
 	} catch (e) {
 		output.fail(e);
 	}
