@@ -1,11 +1,11 @@
 {
   "name": "step-node-agent",
-  "version": "0.9.0",
+  "version": "0.9.1",
   "description": "The official STEP Agent implementation for Node.js",
   "main": "index.js",
   "scripts": {
-    "start": "nodemon server.js",
-    "debug": "node --inspect-brk server.js"
+    "start": "node server.js",
+    "debug": "nodemon --inspect-brk server.js"
   },
   "author": "Jérôme Comte",
   "license": "AGPL-3.0",
