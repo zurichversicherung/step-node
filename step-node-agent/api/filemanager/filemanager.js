@@ -1,16 +1,16 @@
 module.exports = function FileManager(agentContext) {
-
-	var exports = {};
-
 	const fs = require('fs');
 	const shell = require('shelljs');
 	const http = require('http');
 	const unzip = require('unzip2');
-	//exports.filepath = process.cwd() + "/work/filemanager/";
-	exports.filepath = agentContext.properties['filemanagerPath'] + "/work/";
 
-	shell.rm('-rf', exports.filepath);
-	fs.mkdirSync(exports.filepath);
+	var exports = {};
+	var workingDir = agentContext.properties['filemanagerPath'] + "/work/";
+	console.log("[FileManager] Starting file manager using working directory: "+ workingDir);
+
+	console.log("[FileManager] Clearign working dir: "+ workingDir);
+	shell.rm('-rf', workingDir);
+	fs.mkdirSync(workingDir);
 
 	var filemanagerMap = {};
 
@@ -18,46 +18,67 @@ module.exports = function FileManager(agentContext) {
 
 		return new Promise(function(resolve, reject) {
 
-			var filePath = exports.filepath + fileId +"/"+ fileVersionId;
-			var fileName = '';
-
-			if (!fs.existsSync(filePath)) {
-				console.log("[FileManager] filepath doesn't exist: " + filePath);
+			var filePath = workingDir + fileId +"/"+ fileVersionId;
+			
+			var cacheEntry = getCacheEntry(fileId, fileVersionId);
+			if(cacheEntry) {
+				if(!cacheEntry.loading) {
+					console.log("[FileManager] Entry found for fileId " + fileId + ": " + cacheEntry.name);
+					var fileName = cacheEntry.name;
+	
+					if(fs.existsSync(filePath + "/" + fileName)){
+						resolve(filePath + '/' + fileName);
+					} else {
+						reject("Entry exists but no file found: " + filePath + "/" + fileName);
+					}
+				} else {
+					console.log("[FileManager] Waiting for cache entry to be loaded for fileId " + fileId);
+					cacheEntry.promises.push((result)=>{
+						console.log("[FileManager] Cache entry loaded for fileId " + fileId);
+						resolve(result);
+					})
+				}
+			}else{
+				putCacheEntry(fileId, fileVersionId, {'loading': true, 'promises' : []});
+				
+				console.log("[FileManager] No entry found for fileId " + fileId + ". Loading...");
 				shell.mkdir('-p', filePath);
-				console.log("[FileManager] filepath created.");
-
-				console.log("[FileManager] Requesting file transfer from: " + controllerUrl + fileId);
+				console.log("[FileManager] Created file path: " + filePath + " for fileId " + fileId);
+	
+				console.log("[FileManager] Requesting file from: " + controllerUrl + fileId);
 				var filenamePromise = getKeywordFile(controllerUrl + fileId, filePath);
-
+	
 				filenamePromise.then(function(result){
 					console.log("[FileManager] Transfered file " + result + " from "+ controllerUrl + fileId);
-					filemanagerMap[fileId] = { 'name' : result, 'fileVersionId' : fileVersionId };
+
+					var cacheEntry = getCacheEntry(fileId, fileVersionId);
+					cacheEntry.name = result;
+					cacheEntry.loading = false;
+
+					putCacheEntry(fileId, fileVersionId, cacheEntry);
+
+					if(cacheEntry.promises) {
+						cacheEntry.promises.forEach(callback=>callback(filePath + '/' + result));
+					}
+					delete cacheEntry.promises;
+
 					resolve(filePath + '/' + result);
 				}, function(err){
 					console.log("Error :" + err);
 					reject(err);
 				});
-
-			} else {
-				if(filemanagerMap[fileId] &&  filemanagerMap[fileId]['name']){
-					console.log("[FileManager] Entry found for fileId " + fileId + ": " + fileName +"="+ filemanagerMap[fileId]['name']);
-					fileName = filemanagerMap[fileId]['name'];
-
-					if(!fs.existsSync(filePath + "/" + fileName)){
-						//console.log("Entry exists but no file found: " + filePath + "/" + fileName);
-						reject("Entry exists but no file found: " + filePath + "/" + fileName);
-					}
-
-					resolve(filePath + '/' + fileName);
-				}else{
-					//console.log();
-					reject("[FileManager] Entry doesn't exist for file");
-				}
 			}
-
 		});
 
 	};
+
+	function getCacheEntry(fileId, fileVersion) {
+		return filemanagerMap[fileId+fileVersion];
+	}
+
+	function putCacheEntry(fileId, fileVersion, entry) {
+		filemanagerMap[fileId+fileVersion] = entry;
+	}
 
 	function getKeywordFile(controllerFileUrl, targetDir) {
 		return new Promise(function(resolve, reject) {
