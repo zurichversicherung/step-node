@@ -6,14 +6,17 @@
   "scripts": {
     "eslint": "node_modules/.bin/eslint .",
     "precommit": "npm run eslint",
-    "test": "node index.js"
+    "selenium": "node selenium.js",
+    "testcafe": "node testcafe.js"
   },
   "author": "Jérôme Comte",
   "license": "ISC",
   "dependencies": {
     "npm": "^5.7.1",
+    "recursive-readdir": "^2.2.2",
     "selenium-webdriver": "^3.6.0",
-    "step-node-agent": "^0.9.0"
+    "step-node-agent": "^0.9.0",
+    "testcafe": "^0.19.1"
   },
   "devDependencies": {
     "eslint": "^4.18.2",

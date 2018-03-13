@@ -1,4 +1,4 @@
-const runner = require('step-node-agent').runner({ keywords: 'keywords/keywords.js' })
+const runner = require('step-node-agent').runner({ keywords: 'keywords/selenium/keywords.js' })
 const assert = require('assert')
 
 ;(async () => {
